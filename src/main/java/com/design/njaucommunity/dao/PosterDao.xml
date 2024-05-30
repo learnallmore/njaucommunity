@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.design.njaucommunity.dao.PosterDao">
+
+    <select id="getPostersByPageSize" resultType="com.design.njaucommunity.bean.Poster">
+       select *
+        from posters
+	    order by datetime DESC
+        limit #{pageindex},#{size}
+    </select>
+
+    <select id="getimgurlBypid"  resultType="java.lang.String">
+        select imageURL
+            from postersimage where pid = #{pid}
+    </select>
+
+    <delete id="delPosterByPid">
+        delete from posters where pid=#{pid};
+        delete from postersimage where pid=#{pid};
+        delete from comments where pid=#{pid};
+        delete from likes where pid=#{pid};
+    </delete>
+
+    <insert id="addPostercontent">
+        insert into posters set uid = #{userid},content=#{content},datetime=NOW()
+    </insert>
+
+    <select id="getPid" resultType="java.lang.Integer">
+        select  pid from posters where uid = #{uid}
+       order by datetime desc limit 0,1
+    </select>
+
+    <insert id="addPosterimg">
+        insert into postersimage(`pid`,`imageURL`)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            ( #{item.pid},#{item.imgurl} )
+        </foreach>
+    </insert>
+
+    <insert id="addComment">
+        insert into comments set uid =#{uid},content=#{content},createtime=NOW(),replyid=#{rid},pid=#{pid}
+    </insert>
+
+    <update id="updatecommentcount">
+        update posters set commentcount=(select count(*) from comments where pid=#{pid}) where pid=#{pid};
+        update posters set clickcount=(select count(*) from likes where pid=#{pid}) where pid=#{pid};
+    </update>
+
+    <select id="getCommentsByPidPageSize" resultType="com.design.njaucommunity.bean.Comment">
+        select *
+        from comments
+        where pid = #{pid}
+	    order by createtime DESC
+        limit #{pageindex},#{size}
+    </select>
+
+    <delete id="delComment">
+        delete from comments where cid=#{cid}
+    </delete>
+
+
+
+    <select id="getPosterByPid" resultType="com.design.njaucommunity.bean.Poster">
+        select * from posters where pid=#{pid}
+    </select>
+
+    <update id="addclickcount">
+        update posters set clickcount=clickcount+1 where pid=#{pid}
+    </update>
+
+    <insert id="addlikeByPidUid">
+        insert likes set pid=#{pid},uid=#{uid}
+    </insert>
+
+    <!--前端显示每个动态当前用户的点赞-->
+    <select id="getlikebypiduid"  resultType="java.lang.Integer">
+        select count(*) from likes where pid = #{pid} and uid=#{uid}
+    </select>
+
+
+    <delete id="dellikeByPidUid">
+        delete from likes where pid=#{pid} and uid=#{uid}
+    </delete>
+
+    <update id="updatelikecount">
+        update posters set likecount = (select count(*) from likes where pid=#{pid}) where pid=#{pid};
+    </update>
+
+    <select id="getlikeusersBypid" resultType="com.design.njaucommunity.bean.User">
+        select user.* from user,likes WHERE user.uid = likes.uid AND likes.pid=#{pid}
+    </select>
+
+    <select id="getpostersByuidpagesize" resultType="com.design.njaucommunity.bean.Poster">
+        select * from posters where
+        uid = #{uid}
+	    order by datetime DESC
+        limit #{pageindex},#{size}
+    </select>
+
+    <select id="getlikepostersByuidpagesize" resultType="com.design.njaucommunity.bean.Poster">
+        select posters.* from posters,likes
+        where likes.pid = posters.pid and likes.uid = #{uid}
+        order by datetime DESC
+        limit #{pageindex},#{size}
+    </select>
+
+    <select id="getlikecommentsByuid" resultType="com.design.njaucommunity.bean.Comment">
+        select * from comments where  uid=#{uid}
+        order by createtime DESC
+        limit #{pageindex},#{size}
+    </select>
+
+
+
+
+
+
+</mapper>
